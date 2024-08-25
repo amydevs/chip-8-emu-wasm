@@ -10,6 +10,8 @@ import { produce } from 'immer';
 import { Switch } from './components/ui/switch';
 import { RgbColorPicker } from 'react-colorful';
 import { Label } from './components/ui/label';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { DialogClose } from '@radix-ui/react-dialog';
 
 function App() {
   const { getEventLoopLazy, eventLoop } = useEventLoop();
@@ -66,125 +68,158 @@ function App() {
   });
 
   return (
-    <main className='p-6 min-h-screen flex items-center'>
-      <div className='flex-1 flex flex-col md:flex-row gap-6'>
-        <div
-          className='flex-1 flex rounded overflow-hidden p-1'
-          style={{
-            background: !options.invert_colors ?
-              `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
-              `rgb(${options.fg.r}, ${options.fg.g}, ${options.fg.b})`,
-          }}
-        >
-          <div className='flex-1 my-auto'>
-            <div ref={parentRef} className='canvas-parent aspect-[2/1]' />
+    <main>
+      <section className='p-6 min-h-screen flex items-center'>
+        <div className='flex-1 flex flex-col md:flex-row gap-6'>
+          <div
+            className='flex-1 flex rounded-lg overflow-hidden p-1'
+            style={{
+              background: !options.invert_colors ?
+                `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
+                `rgb(${options.fg.r}, ${options.fg.g}, ${options.fg.b})`,
+            }}
+          >
+            <div className='flex-1 my-auto'>
+              <div ref={parentRef} className='canvas-parent aspect-[2/1]' />
+            </div>
+          </div>
+          <div className='flex flex-col gap-3 md:w-64'>
+            <Label htmlFor='rom'>Roms</Label>
+            <Select value={selectedRom} onValueChange={setSelectedRom}>
+              <SelectTrigger id='rom'>
+                <SelectValue placeholder="Select a Rom" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Roms</SelectLabel>
+                  {
+                    romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
+                      <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
+                    )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
+                  }
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <div className='flex gap-3'>
+              <Button
+                className='flex-1'
+                onClick={async () => {
+                  const response = await romQuery.refetch();
+                  if (response.data != null) {
+                    const { WasmMainLoop } = await import('chip-8-emu');
+                    const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
+                    (await getEventLoopLazy()).attach(mainLoop);
+                  }
+                }}
+                disabled={romQuery.isLoading}
+              >
+                { !romQuery.isLoading ? "Play" : "Loading"}
+              </Button>
+              <Button
+                className='flex-1'
+                onClick={async () => {
+                  (await getEventLoopLazy()).detach();
+                }}
+              >
+                Stop
+              </Button>
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Controls</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[300px] rounded-lg">
+                <DialogHeader>
+                  <DialogTitle>Controls</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <pre>
+                    {               
+`Keypad:        Keyboard:
+---------      ---------
+|1|2|3|C|      |1|2|3|4|
+---------      ---------
+|4|5|6|D|      |Q|W|E|R|
+---------  =>  ---------
+|7|8|9|E|      |A|S|D|F|
+---------      ---------
+|A|0|B|F|      |Z|X|C|V|
+---------      ---------
+`
+                    }
+                  </pre>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Label htmlFor='hz'>Speed (hz)</Label>
+            <Slider
+              id='hz'
+              value={[options.hz]}
+              onValueChange={(value) => {
+                setOptions(
+                  produce(options, (draft) => {
+                    draft.hz = value[0]!;
+                  })
+                );
+              }}
+              min={1}
+              max={1000}
+              step={1}
+            />
+            <Label htmlFor='volume'>Volume</Label>
+            <Slider
+              id='volume'
+              value={[options.vol]}
+              onValueChange={(value) => {
+                setOptions(
+                  produce(options, (draft) => {
+                    draft.vol = value[0]!;
+                  })
+                );
+              }}
+              min={0}
+              max={1}
+              step={0.1}
+            />
+            <Label htmlFor='fg'>Foreground</Label>
+            <RgbColorPicker
+              id='fg'
+              className='!w-full'
+              color={options.fg}
+              onChange={(value) => {
+                setOptions(
+                  produce(options, (draft) => {
+                    draft.fg = value;
+                  })
+                );
+              }}
+            />
+            <Label htmlFor='bg'>Background</Label>
+            <RgbColorPicker
+              className='!w-full'
+              color={options.bg}
+              onChange={(value) => {
+                setOptions(
+                  produce(options, (draft) => {
+                    draft.bg = value;
+                  })
+                );
+              }}
+            />
+            <Label htmlFor='invert_colors'>Invert Colors</Label>
+            <Switch
+              checked={options.invert_colors}
+              onCheckedChange={(value) => {
+                setOptions(
+                  produce(options, (draft) => {
+                    draft.invert_colors = value;
+                  })
+                );
+              }}
+            />
           </div>
         </div>
-        <div className='flex flex-col gap-3 md:w-64'>
-          <Label htmlFor='rom'>Roms</Label>
-          <Select value={selectedRom} onValueChange={setSelectedRom}>
-            <SelectTrigger id='rom'>
-              <SelectValue placeholder="Select a Rom" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Roms</SelectLabel>
-                {
-                  romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
-                    <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
-                  )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
-                }
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={async () => {
-              const response = await romQuery.refetch();
-              if (response.data != null) {
-                const { WasmMainLoop } = await import('chip-8-emu');
-                const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
-                (await getEventLoopLazy()).attach(mainLoop);
-              }
-            }}
-            disabled={romQuery.isLoading}
-          >
-            { !romQuery.isLoading ? "Play" : "Loading..."}
-          </Button>
-          <Button
-            onClick={async () => {
-              (await getEventLoopLazy()).detach();
-            }}
-          >
-            Stop
-          </Button>
-          <Label htmlFor='hz'>Speed (hz)</Label>
-          <Slider
-            id='hz'
-            value={[options.hz]}
-            onValueChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.hz = value[0]!;
-                })
-              );
-            }}
-            min={1}
-            max={1000}
-            step={1}
-          />
-          <Label htmlFor='volume'>Volume</Label>
-          <Slider
-            id='volume'
-            value={[options.vol]}
-            onValueChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.vol = value[0]!;
-                })
-              );
-            }}
-            min={0}
-            max={1}
-            step={0.1}
-          />
-          <Label htmlFor='fg'>Foreground</Label>
-          <RgbColorPicker
-            id='fg'
-            className='!w-full'
-            color={options.fg}
-            onChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.fg = value;
-                })
-              );
-            }}
-          />
-          <Label htmlFor='bg'>Background</Label>
-          <RgbColorPicker
-            className='!w-full'
-            color={options.bg}
-            onChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.bg = value;
-                })
-              );
-            }}
-          />
-          <Label htmlFor='invert_colors'>Invert Colors</Label>
-          <Switch
-            checked={options.invert_colors}
-            onCheckedChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.invert_colors = value;
-                })
-              );
-            }}
-          />
-        </div>
-      </div>
+      </section>
     </main>
   )
 }
