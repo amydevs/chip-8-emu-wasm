@@ -58,7 +58,9 @@ function App() {
         <div
           className='flex-1 flex rounded overflow-hidden p-1'
           style={{
-            background: `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})`,
+            background: !options.invert_colors ?
+              `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
+              `rgb(${options.fg.r}, ${options.fg.g}, ${options.fg.b})`,
           }}
         >
           <div className='flex-1 my-auto'>
