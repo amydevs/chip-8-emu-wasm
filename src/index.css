@@ -67,3 +67,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer base {
+  .canvas-parent > canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
