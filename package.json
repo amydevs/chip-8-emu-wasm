@@ -35,7 +35,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
-    "chip-8-emu": "file:../chip-8-emu-rs/pkg",
+    "chip-8-emu": "https://github.com/amydevs/chip-8-emu-rs/releases/download/0.3.2/chip-8-emu.wasm32-unknown-unknown.tgz",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
