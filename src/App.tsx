@@ -65,7 +65,7 @@ function App() {
             <div ref={parentRef} className='canvas-parent aspect-[2/1]' />
           </div>
         </div>
-        <div className='flex flex-col gap-6 md:w-64'>
+        <div className='flex flex-col gap-3 md:w-64'>
           <Label htmlFor='rom'>Roms</Label>
           <Select value={selectedRom} onValueChange={setSelectedRom}>
             <SelectTrigger id='rom'>
@@ -149,6 +149,17 @@ function App() {
               setOptions(
                 produce(options, (draft) => {
                   draft.bg = value;
+                })
+              );
+            }}
+          />
+          <Label htmlFor='invert_colors'>Invert Colors</Label>
+          <Switch
+            checked={options.invert_colors}
+            onCheckedChange={(value) => {
+              setOptions(
+                produce(options, (draft) => {
+                  draft.invert_colors = value;
                 })
               );
             }}
