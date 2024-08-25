@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Options, WasmMainLoop } from 'chip-8-emu';
+import type { Options } from 'chip-8-emu';
 import { useEventLoop } from './store';
 import { Octokit } from 'octokit';
 import { useQuery } from '@tanstack/react-query';
@@ -87,6 +87,7 @@ function App() {
           <Button
             onClick={async () => {
               let response = await fetch(selectedRom);
+              const { WasmMainLoop } = await import('chip-8-emu');
               const mainLoop = await WasmMainLoop.create(parentRef.current!, new Uint8Array(await response.arrayBuffer()), options);
               (await getEventLoopLazy()).attach(mainLoop);
             }}
