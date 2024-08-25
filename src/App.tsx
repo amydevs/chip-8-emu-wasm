@@ -10,8 +10,11 @@ import { produce } from 'immer';
 import { Switch } from './components/ui/switch';
 import { RgbColorPicker } from 'react-colorful';
 import { Label } from './components/ui/label';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
-import { DialogClose } from '@radix-ui/react-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { Input } from './components/ui/input';
+import { Toggle } from './components/ui/toggle';
+import { Upload } from "lucide-react"
+import { read } from 'fs';
 
 function App() {
   const { getEventLoopLazy, eventLoop } = useEventLoop();
@@ -67,6 +70,8 @@ function App() {
     enabled: false,
   });
 
+  let [isUploadRom, setIsUploadRom] = React.useState(false);
+
   return (
     <main>
       <section className='p-6 min-h-screen flex items-center'>
@@ -84,24 +89,49 @@ function App() {
             </div>
           </div>
           <div className='flex flex-col gap-3 md:w-64'>
-            <Label htmlFor='rom'>Roms</Label>
-            <Select value={selectedRom} onValueChange={setSelectedRom}>
-              <SelectTrigger id='rom'>
-                <SelectValue placeholder="Select a Rom" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Roms</SelectLabel>
-                  {
-                    romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
-                      <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
-                    )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
-                  }
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <Label htmlFor='rom'>Rom</Label>
+            <div id='rom' className='flex'>
+              {
+                !isUploadRom ?
+                  <Select value={selectedRom} onValueChange={setSelectedRom}>
+                    <SelectTrigger title='Select Rom'>
+                      <SelectValue placeholder="Select a Rom" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Roms</SelectLabel>
+                        {
+                          romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
+                            <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
+                          )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
+                        }
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select> :
+                  <Input
+                    title='Upload Rom'
+                    type='file'
+                    placeholder='Upload Rom'
+                    onChange={(event) => {
+                      const files = event.target.files;
+                      if (files != null && files[0] != null) {
+                        const file = files[0];
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => {
+                          setSelectedRom(reader.result as string);
+                        }
+                      }
+                    }}
+                  />
+              }
+              <Toggle title='Enable Upload Rom' pressed={isUploadRom} onPressedChange={setIsUploadRom}>
+                <Upload className='h-4 w-4' />
+              </Toggle>
+            </div>
             <div className='flex gap-3'>
               <Button
+                title='Play'
                 className='flex-1'
                 onClick={async () => {
                   const response = await romQuery.refetch();
@@ -113,9 +143,10 @@ function App() {
                 }}
                 disabled={romQuery.isLoading}
               >
-                { !romQuery.isLoading ? "Play" : "Loading"}
+                { !romQuery.isLoading ? "Play" : "Loading" }
               </Button>
               <Button
+                title='Stop'
                 className='flex-1'
                 onClick={async () => {
                   (await getEventLoopLazy()).detach();
@@ -126,7 +157,7 @@ function App() {
             </div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button>Controls</Button>
+                <Button title='Open Controls'>Controls</Button>
               </DialogTrigger>
               <DialogContent className="max-w-[300px] rounded-lg">
                 <DialogHeader>
@@ -153,6 +184,7 @@ function App() {
             </Dialog>
             <Label htmlFor='hz'>Speed (hz)</Label>
             <Slider
+              title='Speed (hz)'
               id='hz'
               value={[options.hz]}
               onValueChange={(value) => {
@@ -168,6 +200,7 @@ function App() {
             />
             <Label htmlFor='volume'>Volume</Label>
             <Slider
+              title='Volume'
               id='volume'
               value={[options.vol]}
               onValueChange={(value) => {
@@ -183,6 +216,7 @@ function App() {
             />
             <Label htmlFor='fg'>Foreground</Label>
             <RgbColorPicker
+              title='Foreground Color'
               id='fg'
               className='!w-full'
               color={options.fg}
@@ -196,6 +230,7 @@ function App() {
             />
             <Label htmlFor='bg'>Background</Label>
             <RgbColorPicker
+              title='Background Color'
               className='!w-full'
               color={options.bg}
               onChange={(value) => {
@@ -208,6 +243,7 @@ function App() {
             />
             <Label htmlFor='invert_colors'>Invert Colors</Label>
             <Switch
+              title='Invert Colors'
               checked={options.invert_colors}
               onCheckedChange={(value) => {
                 setOptions(
