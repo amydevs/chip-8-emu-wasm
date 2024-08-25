@@ -17,7 +17,16 @@ import { Upload } from "lucide-react"
 
 function App() {
   const { getEventLoopLazy, eventLoop } = useEventLoop();
-  const parentRef = React.useRef<HTMLDivElement>(null);
+  const parentRef = React.useRef<HTMLDivElement>(document.createElement('div'));
+
+  React.useEffect(() => {
+    parentRef.current.className = 'canvas-parent aspect-[2/1]';
+    () => {
+      eventLoop?.detach();
+      parentRef.current.remove();
+    }
+  }, []);
+
   const [options, setOptions] = React.useState<Required<Options>>({
     invert_colors: false,
     hz: 500,
@@ -87,9 +96,7 @@ function App() {
               parentRef.current?.querySelector("canvas")?.focus();
             }}
           >
-            <div className='flex-1 my-auto'>
-              <div ref={parentRef} className='canvas-parent aspect-[2/1]' />
-            </div>
+            <div className='flex-1 my-auto' ref={ref => ref?.appendChild(parentRef.current)} />
           </div>
           <div className='flex flex-col gap-3 md:w-64'>
             <Label htmlFor='rom'>Rom</Label>
