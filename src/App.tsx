@@ -14,7 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from './components/ui/input';
 import { Toggle } from './components/ui/toggle';
 import { Upload } from "lucide-react"
-import { read } from 'fs';
 
 function App() {
   const { getEventLoopLazy, eventLoop } = useEventLoop();
