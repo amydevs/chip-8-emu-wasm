@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Vite
-        run: ${{ steps.detect-package-manager.outputs.runner }} tsc -b && ${{ steps.detect-package-manager.outputs.runner }} vite build
+        run: ${{ steps.detect-package-manager.outputs.runner }} tsc -b && ${{ steps.detect-package-manager.outputs.runner }} vite build --base=/${{ github.event.repository.name }}/
         env:
           npm_lifecycle_event: export
       - name: Upload artifact
