@@ -51,7 +51,20 @@ function App() {
         .filter((e) => e.type === "file" && e.name.endsWith(".ch8"));
     }
   });
+
   let [selectedRom, setSelectedRom] = React.useState("https://raw.githubusercontent.com/dmatlack/chip8/master/roms/games/Airplane.ch8");
+
+  const romQuery = useQuery({
+    queryKey: ['rom', selectedRom],
+    queryFn: async () => {
+      let response = await fetch(selectedRom);
+      await import('chip-8-emu');
+      return new Uint8Array(await response.arrayBuffer());
+    },
+    refetchOnWindowFocus: false,
+    enabled: false,
+  });
+
   return (
     <main className='p-6 min-h-screen flex items-center'>
       <div className='flex-1 flex flex-col md:flex-row gap-6'>
@@ -86,13 +99,16 @@ function App() {
           </Select>
           <Button
             onClick={async () => {
-              let response = await fetch(selectedRom);
-              const { WasmMainLoop } = await import('chip-8-emu');
-              const mainLoop = await WasmMainLoop.create(parentRef.current!, new Uint8Array(await response.arrayBuffer()), options);
-              (await getEventLoopLazy()).attach(mainLoop);
+              const response = await romQuery.refetch();
+              if (response.data != null) {
+                const { WasmMainLoop } = await import('chip-8-emu');
+                const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
+                (await getEventLoopLazy()).attach(mainLoop);
+              }
             }}
+            disabled={romQuery.isLoading}
           >
-            Play
+            { !romQuery.isLoading ? "Play" : "Loading..."}
           </Button>
           <Button
             onClick={async () => {
