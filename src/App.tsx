@@ -76,11 +76,15 @@ function App() {
       <section className='p-6 min-h-screen flex items-center'>
         <div className='flex-1 flex flex-col md:flex-row gap-6'>
           <div
+            tabIndex={0}
             className='flex-1 flex rounded-lg overflow-hidden p-1'
             style={{
               background: !options.invert_colors ?
                 `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
                 `rgb(${options.fg.r}, ${options.fg.g}, ${options.fg.b})`,
+            }}
+            onFocus={() => {
+              parentRef.current?.querySelector("canvas")?.focus();
             }}
           >
             <div className='flex-1 my-auto'>
