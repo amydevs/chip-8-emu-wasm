@@ -82,100 +82,99 @@ function App() {
 
   return (
     <main>
-      <section className='p-6 min-h-screen flex items-center'>
-        <div className='flex-1 flex flex-col md:flex-row gap-6'>
-          <div
-            tabIndex={0}
-            className='flex-1 flex rounded-lg overflow-hidden p-1'
-            style={{
-              background: !options.invert_colors ?
-                `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
-                `rgb(${options.fg.r}, ${options.fg.g}, ${options.fg.b})`,
-            }}
-            onFocus={() => {
-              parentRef.current?.querySelector("canvas")?.focus();
-            }}
-          >
-            <div className='flex-1 my-auto' ref={ref => ref?.appendChild(parentRef.current)} />
-          </div>
-          <div className='flex flex-col gap-3 md:w-64'>
-            <Label htmlFor='rom'>Rom</Label>
-            <div id='rom' className='flex'>
-              {
-                !isUploadRom ?
-                  <Select value={selectedRom} onValueChange={setSelectedRom}>
-                    <SelectTrigger title='Select Rom'>
-                      <SelectValue placeholder="Select a Rom" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Roms</SelectLabel>
-                        {
-                          romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
-                            <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
-                          )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
-                        }
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select> :
-                  <Input
-                    title='Upload Rom'
-                    type='file'
-                    placeholder='Upload Rom'
-                    onChange={(event) => {
-                      const files = event.target.files;
-                      if (files != null && files[0] != null) {
-                        const file = files[0];
-                        const reader = new FileReader();
-                        reader.readAsDataURL(file);
-                        reader.onload = () => {
-                          setSelectedRom(reader.result as string);
-                        }
+      <section className='p-6 min-h-screen max-h-screen gap-6 flex flex-col md:flex-row'>
+        <div
+          tabIndex={0}
+          className='flex rounded-lg p-1 md:flex-1'
+          style={{
+            background: !options.invert_colors ?
+              `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
+              `rgb(${options.fg.r}, ${options.fg.g}, ${options.fg.b})`,
+          }}
+          onFocus={() => {
+            parentRef.current?.querySelector("canvas")?.focus();
+          }}
+        >
+          <div className='flex-1 my-auto' ref={ref => ref?.appendChild(parentRef.current)} />
+        </div>
+        <div className='flex-grow md:flex-grow-0 min-h-0 flex flex-col gap-3 overflow-auto md:w-80'>
+          <Label htmlFor='rom'>Rom</Label>
+          <div id='rom' className='flex'>
+            {
+              !isUploadRom ?
+                <Select value={selectedRom} onValueChange={setSelectedRom}>
+                  <SelectTrigger title='Select Rom'>
+                    <SelectValue placeholder="Select a Rom" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Roms</SelectLabel>
+                      {
+                        romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
+                          <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
+                        )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
                       }
-                    }}
-                  />
-              }
-              <Toggle title='Enable Upload Rom' pressed={isUploadRom} onPressedChange={setIsUploadRom}>
-                <Upload className='h-4 w-4' />
-              </Toggle>
-            </div>
-            <div className='flex gap-3'>
-              <Button
-                title='Play'
-                className='flex-1'
-                onClick={async () => {
-                  const response = await romQuery.refetch();
-                  if (response.data != null) {
-                    const { WasmMainLoop } = await import('chip-8-emu');
-                    const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
-                    (await getEventLoopLazy()).attach(mainLoop);
-                  }
-                }}
-                disabled={romQuery.isLoading}
-              >
-                { !romQuery.isLoading ? "Play" : "Loading" }
-              </Button>
-              <Button
-                title='Stop'
-                className='flex-1'
-                onClick={async () => {
-                  (await getEventLoopLazy()).detach();
-                }}
-              >
-                Stop
-              </Button>
-            </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button title='Open Controls'>Controls</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[300px] rounded-lg">
-                <DialogHeader>
-                  <DialogTitle>Controls</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <pre>
-                    {               
+                    </SelectGroup>
+                  </SelectContent>
+                </Select> :
+                <Input
+                  title='Upload Rom'
+                  type='file'
+                  placeholder='Upload Rom'
+                  onChange={(event) => {
+                    const files = event.target.files;
+                    if (files != null && files[0] != null) {
+                      const file = files[0];
+                      const reader = new FileReader();
+                      reader.readAsDataURL(file);
+                      reader.onload = () => {
+                        setSelectedRom(reader.result as string);
+                      }
+                    }
+                  }}
+                />
+            }
+            <Toggle title='Enable Upload Rom' pressed={isUploadRom} onPressedChange={setIsUploadRom}>
+              <Upload className='h-4 w-4' />
+            </Toggle>
+          </div>
+          <div className='flex gap-3'>
+            <Button
+              title='Play'
+              className='flex-1'
+              onClick={async () => {
+                const response = await romQuery.refetch();
+                if (response.data != null) {
+                  const { WasmMainLoop } = await import('chip-8-emu');
+                  const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
+                  (await getEventLoopLazy()).attach(mainLoop);
+                }
+              }}
+              disabled={romQuery.isLoading}
+            >
+              { !romQuery.isLoading ? "Play" : "Loading" }
+            </Button>
+            <Button
+              title='Stop'
+              className='flex-1'
+              onClick={async () => {
+                (await getEventLoopLazy()).detach();
+              }}
+            >
+              Stop
+            </Button>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button title='Open Controls'>Controls</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[300px] rounded-lg">
+              <DialogHeader>
+                <DialogTitle>Controls</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <pre>
+                  {               
 `Keypad:        Keyboard:
 ---------      ---------
 |1|2|3|C|      |1|2|3|4|
@@ -187,61 +186,64 @@ function App() {
 |A|0|B|F|      |Z|X|C|V|
 ---------      ---------
 `
-                    }
-                  </pre>
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Label htmlFor='hz'>Speed (hz)</Label>
-            <Slider
-              title='Speed (hz)'
-              id='hz'
-              value={[options.hz]}
-              onValueChange={(value) => {
-                setOptions(
-                  produce(options, (draft) => {
-                    draft.hz = value[0]!;
-                  })
-                );
-              }}
-              min={1}
-              max={1000}
-              step={1}
-            />
-            <Label htmlFor='volume'>Volume</Label>
-            <Slider
-              title='Volume'
-              id='volume'
-              value={[options.vol]}
-              onValueChange={(value) => {
-                setOptions(
-                  produce(options, (draft) => {
-                    draft.vol = value[0]!;
-                  })
-                );
-              }}
-              min={0}
-              max={1}
-              step={0.1}
-            />
-            <Label htmlFor='fg'>Foreground</Label>
-            <RgbColorPicker
-              title='Foreground Color'
-              id='fg'
-              className='!w-full'
-              color={options.fg}
-              onChange={(value) => {
-                setOptions(
-                  produce(options, (draft) => {
-                    draft.fg = value;
-                  })
-                );
-              }}
-            />
-            <Label htmlFor='bg'>Background</Label>
+                  }
+                </pre>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Label htmlFor='hz'>Speed (hz)</Label>
+          <Slider
+            title='Speed (hz)'
+            id='hz'
+            value={[options.hz]}
+            onValueChange={(value) => {
+              setOptions(
+                produce(options, (draft) => {
+                  draft.hz = value[0]!;
+                })
+              );
+            }}
+            min={1}
+            max={1000}
+            step={1}
+          />
+          <Label htmlFor='volume'>Volume</Label>
+          <Slider
+            title='Volume'
+            id='volume'
+            value={[options.vol]}
+            onValueChange={(value) => {
+              setOptions(
+                produce(options, (draft) => {
+                  draft.vol = value[0]!;
+                })
+              );
+            }}
+            min={0}
+            max={1}
+            step={0.1}
+          />
+          <Label htmlFor='fg'>Foreground</Label>
+          <div className='px-3.5'>
+          <RgbColorPicker
+            title='Foreground Color'
+            id='fg'
+            className='!w-full !min-h-[200px]'
+            color={options.fg}
+            onChange={(value) => {
+              setOptions(
+                produce(options, (draft) => {
+                  draft.fg = value;
+                })
+              );
+            }}
+          />
+          </div>
+          <Label htmlFor='bg'>Background</Label>
+          <div className='px-3.5'>
             <RgbColorPicker
               title='Background Color'
-              className='!w-full'
+              className='!w-full !min-h-[200px]'
               color={options.bg}
               onChange={(value) => {
                 setOptions(
@@ -251,19 +253,19 @@ function App() {
                 );
               }}
             />
-            <Label htmlFor='invert_colors'>Invert Colors</Label>
-            <Switch
-              title='Invert Colors'
-              checked={options.invert_colors}
-              onCheckedChange={(value) => {
-                setOptions(
-                  produce(options, (draft) => {
-                    draft.invert_colors = value;
-                  })
-                );
-              }}
-            />
           </div>
+          <Label htmlFor='invert_colors'>Invert Colors</Label>
+          <Switch
+            title='Invert Colors'
+            checked={options.invert_colors}
+            onCheckedChange={(value) => {
+              setOptions(
+                produce(options, (draft) => {
+                  draft.invert_colors = value;
+                })
+              );
+            }}
+          />
         </div>
       </section>
     </main>
