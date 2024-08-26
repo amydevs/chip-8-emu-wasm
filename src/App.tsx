@@ -85,7 +85,7 @@ function App() {
       <section className='p-6 min-h-screen h-screen gap-6 flex flex-col md:flex-row'>
         <div
           tabIndex={0}
-          className='flex rounded-lg p-1'
+          className='flex rounded-lg p-1 md:flex-1'
           style={{
             background: !options.invert_colors ?
               `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
