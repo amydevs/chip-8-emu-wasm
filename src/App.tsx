@@ -20,7 +20,7 @@ function App() {
   const parentRef = React.useRef<HTMLDivElement>(document.createElement('div'));
 
   React.useEffect(() => {
-    parentRef.current.className = 'canvas-parent aspect-[2/1]';
+    parentRef.current.className = 'canvas-parent aspect-[2/1] w-full';
     () => {
       eventLoop?.detach();
       parentRef.current.remove();
@@ -82,10 +82,10 @@ function App() {
 
   return (
     <main>
-      <section className='p-6 min-h-screen h-screen gap-6 flex flex-col md:flex-row'>
+      <section className='p-6 min-h-screen max-h-screen gap-6 flex flex-col md:flex-row'>
         <div
           tabIndex={0}
-          className='flex rounded-lg p-1 md:flex-1'
+          className='flex rounded-lg p-1 md:flex-1 items-center self-stretch'
           style={{
             background: !options.invert_colors ?
               `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
@@ -94,8 +94,8 @@ function App() {
           onFocus={() => {
             parentRef.current?.querySelector("canvas")?.focus();
           }}
+          ref={ref => ref?.appendChild(parentRef.current)} 
         >
-          <div className='flex-1 my-auto' ref={ref => ref?.appendChild(parentRef.current)} />
         </div>
         <div className='flex-grow md:flex-grow-0 min-h-0 flex flex-col gap-3 overflow-auto md:w-80'>
           <Label htmlFor='rom'>Rom</Label>
