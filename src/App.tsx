@@ -85,7 +85,7 @@ function App() {
       <section className='p-6 min-h-screen gap-6 grid grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[1fr_20rem] md:grid-rows-[fit-content(100%)]'>
         <div
           tabIndex={0}
-          className='rounded-lg p-1 md:flex-grow h-full flex items-center'
+          className='rounded-lg p-1 h-full flex items-center'
           style={{
             background: !options.invert_colors ?
               `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
@@ -97,7 +97,7 @@ function App() {
           ref={ref => ref?.appendChild(parentRef.current)} 
         >
         </div>
-        <div className='flex-grow md:flex-grow-0 min-h-0 flex flex-col gap-3 overflow-auto md:w-80'>
+        <div className='flex flex-col gap-3 overflow-auto md:w-80'>
           <Label htmlFor='rom'>Rom</Label>
           <div id='rom' className='flex'>
             {
