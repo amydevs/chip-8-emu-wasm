@@ -108,8 +108,8 @@ function App() {
             <TabsTrigger value="options">Options</TabsTrigger>
             <TabsTrigger value="gamepad">Gamepad</TabsTrigger>
           </TabsList>
-          <TabsContent value="options" className='h-[calc(100%-3rem)] relative'>
-            <div className='lg:absolute inset-0 flex flex-col gap-3 overflow-y-auto'>
+          <TabsContent value="options" className='min-h-[calc(100%-3rem)] relative'>
+            <div className='lg:absolute lg:inset-0 lg:overflow-y-auto flex flex-col gap-3'>
               <Label htmlFor='rom'>Rom</Label>
               <div id='rom' className='flex'>
                 {
