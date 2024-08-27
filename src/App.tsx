@@ -82,10 +82,10 @@ function App() {
 
   return (
     <main>
-      <section className='p-6 min-h-screen max-h-screen gap-6 flex flex-col md:flex-row'>
+      <section className='p-6 min-h-screen gap-6 grid grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[1fr_20rem] md:grid-rows-[fit-content(100%)]'>
         <div
           tabIndex={0}
-          className='flex rounded-lg p-1 md:flex-1 items-center self-stretch'
+          className='rounded-lg p-1 md:flex-grow h-full flex items-center'
           style={{
             background: !options.invert_colors ?
               `rgb(${options.bg.r}, ${options.bg.g}, ${options.bg.b})` :
