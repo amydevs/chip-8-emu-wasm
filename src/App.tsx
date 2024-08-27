@@ -105,7 +105,7 @@ function App() {
             <TabsTrigger value="gamepad">Gamepad</TabsTrigger>
           </TabsList>
           <TabsContent value="options" className='h-[calc(100%-3rem)] relative'>
-            <div className='absolute inset-0 flex flex-col gap-3 overflow-y-auto'>
+            <div className='md:absolute inset-0 flex flex-col gap-3 overflow-y-auto'>
               <Label htmlFor='rom'>Rom</Label>
               <div id='rom' className='flex'>
                 {
@@ -279,11 +279,17 @@ function App() {
           <TabsContent value="gamepad" className='h-[calc(100%-3rem)]'>
             <div className='h-full grid grid-cols-4 gap-3'>
               {
-                KEYPAD_ORDER.map((key, i) => {
-                  return <Button
+                KEYPAD_ORDER.map((key, i) => (
+                  <Button
                     className='h-full w-full'
                     key={i}
                     title={key.toString()}
+                    onTouchStart={async () => {
+                      (await getEventLoopLazy()).set_key(KEYPAD[key], true);
+                    }}
+                    onTouchEnd={async () => {
+                      (await getEventLoopLazy()).set_key(KEYPAD[key], false);
+                    }}
                     onMouseDown={async () => {
                       (await getEventLoopLazy()).set_key(KEYPAD[key], true);
                     }}
@@ -292,8 +298,8 @@ function App() {
                     }}
                   >
                     {key.toString()}
-                  </Button>;
-              })
+                  </Button>
+                ))
               }
             </div>
           </TabsContent>
