@@ -14,6 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from './components/ui/input';
 import { Toggle } from './components/ui/toggle';
 import { Upload } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { KEYPAD, KEYPAD_ORDER } from './lib/utils';
 
 function App() {
   const { getEventLoopLazy, eventLoop } = useEventLoop();
@@ -82,7 +84,7 @@ function App() {
 
   return (
     <main>
-      <section className='p-6 min-h-screen gap-6 grid grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[1fr_20rem] md:grid-rows-[fit-content(100%)]'>
+      <section className='p-6 min-h-screen gap-6 grid grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[1fr_auto] md:grid-rows-[fit-content(100%)]'>
         <div
           tabIndex={0}
           className='rounded-lg p-1 h-full flex items-center'
@@ -97,176 +99,205 @@ function App() {
           ref={ref => ref?.appendChild(parentRef.current)} 
         >
         </div>
-        <div className='flex flex-col gap-3 overflow-auto md:w-80'>
-          <Label htmlFor='rom'>Rom</Label>
-          <div id='rom' className='flex'>
-            {
-              !isUploadRom ?
-                <Select value={selectedRom} onValueChange={setSelectedRom}>
-                  <SelectTrigger title='Select Rom'>
-                    <SelectValue placeholder="Select a Rom" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Roms</SelectLabel>
-                      {
-                        romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
-                          <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
-                        )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
-                      }
-                    </SelectGroup>
-                  </SelectContent>
-                </Select> :
-                <Input
-                  title='Upload Rom'
-                  type='file'
-                  placeholder='Upload Rom'
-                  onChange={(event) => {
-                    const files = event.target.files;
-                    if (files != null && files[0] != null) {
-                      const file = files[0];
-                      const reader = new FileReader();
-                      reader.readAsDataURL(file);
-                      reader.onload = () => {
-                        setSelectedRom(reader.result as string);
-                      }
+        <Tabs defaultValue="options" className='md:w-80 h-full'>
+          <TabsList className='grid w-full grid-cols-2'>
+            <TabsTrigger value="options">Options</TabsTrigger>
+            <TabsTrigger value="gamepad">Gamepad</TabsTrigger>
+          </TabsList>
+          <TabsContent value="options" className='h-[calc(100%-3rem)] relative'>
+            <div className='absolute inset-0 flex flex-col gap-3 overflow-y-auto'>
+              <Label htmlFor='rom'>Rom</Label>
+              <div id='rom' className='flex'>
+                {
+                  !isUploadRom ?
+                    <Select value={selectedRom} onValueChange={setSelectedRom}>
+                      <SelectTrigger title='Select Rom'>
+                        <SelectValue placeholder="Select a Rom" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Roms</SelectLabel>
+                          {
+                            romListQuery.data != null ? romListQuery.data?.map((rom, i) => (
+                              <SelectItem key={i} value={rom.download_url!}>{rom.name}</SelectItem>
+                            )) : <SelectItem value={selectedRom}>Airplane.ch8</SelectItem>
+                          }
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select> :
+                    <Input
+                      title='Upload Rom'
+                      type='file'
+                      placeholder='Upload Rom'
+                      onChange={(event) => {
+                        const files = event.target.files;
+                        if (files != null && files[0] != null) {
+                          const file = files[0];
+                          const reader = new FileReader();
+                          reader.readAsDataURL(file);
+                          reader.onload = () => {
+                            setSelectedRom(reader.result as string);
+                          }
+                        }
+                      }}
+                    />
+                }
+                <Toggle title='Enable Upload Rom' pressed={isUploadRom} onPressedChange={setIsUploadRom}>
+                  <Upload className='h-4 w-4' />
+                </Toggle>
+              </div>
+              <div className='flex gap-3'>
+                <Button
+                  title='Play'
+                  className='flex-1'
+                  onClick={async () => {
+                    const response = await romQuery.refetch();
+                    if (response.data != null) {
+                      const { WasmMainLoop } = await import('chip-8-emu');
+                      const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
+                      (await getEventLoopLazy()).attach(mainLoop);
                     }
                   }}
-                />
-            }
-            <Toggle title='Enable Upload Rom' pressed={isUploadRom} onPressedChange={setIsUploadRom}>
-              <Upload className='h-4 w-4' />
-            </Toggle>
-          </div>
-          <div className='flex gap-3'>
-            <Button
-              title='Play'
-              className='flex-1'
-              onClick={async () => {
-                const response = await romQuery.refetch();
-                if (response.data != null) {
-                  const { WasmMainLoop } = await import('chip-8-emu');
-                  const mainLoop = await WasmMainLoop.create(parentRef.current!, response.data, options);
-                  (await getEventLoopLazy()).attach(mainLoop);
-                }
-              }}
-              disabled={romQuery.isLoading}
-            >
-              { !romQuery.isLoading ? "Play" : "Loading" }
-            </Button>
-            <Button
-              title='Stop'
-              className='flex-1'
-              onClick={async () => {
-                (await getEventLoopLazy()).detach();
-              }}
-            >
-              Stop
-            </Button>
-          </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button title='Open Controls'>Controls</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[300px] rounded-lg">
-              <DialogHeader>
-                <DialogTitle>Controls</DialogTitle>
-              </DialogHeader>
-              <div className="py-4">
-                <pre>
-                  {               
-`Keypad:        Keyboard:
----------      ---------
-|1|2|3|C|      |1|2|3|4|
----------      ---------
-|4|5|6|D|      |Q|W|E|R|
----------  =>  ---------
-|7|8|9|E|      |A|S|D|F|
----------      ---------
-|A|0|B|F|      |Z|X|C|V|
----------      ---------
-`
-                  }
-                </pre>
+                  disabled={romQuery.isLoading}
+                >
+                  { !romQuery.isLoading ? "Play" : "Loading" }
+                </Button>
+                <Button
+                  title='Stop'
+                  className='flex-1'
+                  onClick={async () => {
+                    (await getEventLoopLazy()).detach();
+                  }}
+                >
+                  Stop
+                </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-          <Label htmlFor='hz'>Speed (hz)</Label>
-          <Slider
-            title='Speed (hz)'
-            id='hz'
-            value={[options.hz]}
-            onValueChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.hz = value[0]!;
-                })
-              );
-            }}
-            min={1}
-            max={1000}
-            step={1}
-          />
-          <Label htmlFor='volume'>Volume</Label>
-          <Slider
-            title='Volume'
-            id='volume'
-            value={[options.vol]}
-            onValueChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.vol = value[0]!;
-                })
-              );
-            }}
-            min={0}
-            max={1}
-            step={0.1}
-          />
-          <Label htmlFor='fg'>Foreground</Label>
-          <div className='px-3.5'>
-          <RgbColorPicker
-            title='Foreground Color'
-            id='fg'
-            className='!w-full !min-h-[200px]'
-            color={options.fg}
-            onChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.fg = value;
-                })
-              );
-            }}
-          />
-          </div>
-          <Label htmlFor='bg'>Background</Label>
-          <div className='px-3.5'>
-            <RgbColorPicker
-              title='Background Color'
-              className='!w-full !min-h-[200px]'
-              color={options.bg}
-              onChange={(value) => {
-                setOptions(
-                  produce(options, (draft) => {
-                    draft.bg = value;
-                  })
-                );
-              }}
-            />
-          </div>
-          <Label htmlFor='invert_colors'>Invert Colors</Label>
-          <Switch
-            title='Invert Colors'
-            checked={options.invert_colors}
-            onCheckedChange={(value) => {
-              setOptions(
-                produce(options, (draft) => {
-                  draft.invert_colors = value;
-                })
-              );
-            }}
-          />
-        </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button title='Open Controls'>Controls</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[300px] rounded-lg">
+                  <DialogHeader>
+                    <DialogTitle>Controls</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <pre>
+                      {               
+    `Keypad:        Keyboard:
+    ---------      ---------
+    |1|2|3|C|      |1|2|3|4|
+    ---------      ---------
+    |4|5|6|D|      |Q|W|E|R|
+    ---------  =>  ---------
+    |7|8|9|E|      |A|S|D|F|
+    ---------      ---------
+    |A|0|B|F|      |Z|X|C|V|
+    ---------      ---------
+    `
+                      }
+                    </pre>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Label htmlFor='hz'>Speed (hz)</Label>
+              <Slider
+                title='Speed (hz)'
+                id='hz'
+                value={[options.hz]}
+                onValueChange={(value) => {
+                  setOptions(
+                    produce(options, (draft) => {
+                      draft.hz = value[0]!;
+                    })
+                  );
+                }}
+                min={1}
+                max={1000}
+                step={1}
+              />
+              <Label htmlFor='volume'>Volume</Label>
+              <Slider
+                title='Volume'
+                id='volume'
+                value={[options.vol]}
+                onValueChange={(value) => {
+                  setOptions(
+                    produce(options, (draft) => {
+                      draft.vol = value[0]!;
+                    })
+                  );
+                }}
+                min={0}
+                max={1}
+                step={0.1}
+              />
+              <Label htmlFor='fg'>Foreground</Label>
+              <div className='px-3.5'>
+              <RgbColorPicker
+                title='Foreground Color'
+                id='fg'
+                className='!w-full !min-h-[200px]'
+                color={options.fg}
+                onChange={(value) => {
+                  setOptions(
+                    produce(options, (draft) => {
+                      draft.fg = value;
+                    })
+                  );
+                }}
+              />
+              </div>
+              <Label htmlFor='bg'>Background</Label>
+              <div className='px-3.5'>
+                <RgbColorPicker
+                  title='Background Color'
+                  className='!w-full !min-h-[200px]'
+                  color={options.bg}
+                  onChange={(value) => {
+                    setOptions(
+                      produce(options, (draft) => {
+                        draft.bg = value;
+                      })
+                    );
+                  }}
+                />
+              </div>
+              <Label htmlFor='invert_colors'>Invert Colors</Label>
+              <Switch
+                title='Invert Colors'
+                checked={options.invert_colors}
+                onCheckedChange={(value) => {
+                  setOptions(
+                    produce(options, (draft) => {
+                      draft.invert_colors = value;
+                    })
+                  );
+                }}
+              />
+            </div>
+          </TabsContent>
+          <TabsContent value="gamepad" className='h-[calc(100%-3rem)]'>
+            <div className='h-full grid grid-cols-4 gap-3'>
+              {
+                KEYPAD_ORDER.map((key, i) => {
+                  return <Button
+                    className='h-full w-full'
+                    key={i}
+                    title={key.toString()}
+                    onMouseDown={async () => {
+                      (await getEventLoopLazy()).press(KEYPAD[key]);
+                    }}
+                    onMouseUp={async () => {
+                      (await getEventLoopLazy()).unpress(KEYPAD[key]);
+                    }}
+                  >
+                    {key.toString()}
+                  </Button>;
+              })
+              }
+            </div>
+          </TabsContent>
+        </Tabs>
       </section>
     </main>
   )
