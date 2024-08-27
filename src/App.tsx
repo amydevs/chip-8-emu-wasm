@@ -88,7 +88,7 @@ function App() {
 
   return (
     <main>
-      <section className='p-6 min-h-screen gap-6 grid grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[1fr_auto] md:grid-rows-[fit-content(100%)]'>
+      <section className='p-6 min-h-screen gap-6 grid grid-cols-1 grid-rows-[auto_1fr] md:grid-cols-[1fr_auto] md:grid-rows-1'>
         <div
           tabIndex={0}
           className='rounded-lg p-1 h-full flex items-center'
