@@ -285,10 +285,10 @@ function App() {
                     key={i}
                     title={key.toString()}
                     onMouseDown={async () => {
-                      (await getEventLoopLazy()).press(KEYPAD[key]);
+                      (await getEventLoopLazy()).set_key(KEYPAD[key], true);
                     }}
                     onMouseUp={async () => {
-                      (await getEventLoopLazy()).unpress(KEYPAD[key]);
+                      (await getEventLoopLazy()).set_key(KEYPAD[key], false);
                     }}
                   >
                     {key.toString()}
