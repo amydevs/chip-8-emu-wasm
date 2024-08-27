@@ -45,7 +45,7 @@ function App() {
     },
   });
 
-  React.useEffect(() => {
+  React.useMemo(() => {
     eventLoop?.set_options(options);
   }, [options]);
 
@@ -66,6 +66,10 @@ function App() {
         .filter((e) => e.type === "file" && e.name.endsWith(".ch8"));
     }
   });
+
+  const keydownCb = React.useCallback(async (value: number, pressed: boolean) => {
+    (await getEventLoopLazy()).set_key(value, pressed);
+  }, [getEventLoopLazy]);
 
   let [selectedRom, setSelectedRom] = React.useState("https://raw.githubusercontent.com/dmatlack/chip8/master/roms/games/Airplane.ch8");
 
@@ -284,18 +288,10 @@ function App() {
                     className='h-full w-full'
                     key={i}
                     title={key.toString()}
-                    onTouchStart={async () => {
-                      (await getEventLoopLazy()).set_key(KEYPAD[key], true);
-                    }}
-                    onTouchEnd={async () => {
-                      (await getEventLoopLazy()).set_key(KEYPAD[key], false);
-                    }}
-                    onMouseDown={async () => {
-                      (await getEventLoopLazy()).set_key(KEYPAD[key], true);
-                    }}
-                    onMouseUp={async () => {
-                      (await getEventLoopLazy()).set_key(KEYPAD[key], false);
-                    }}
+                    onTouchStart={() => keydownCb(KEYPAD[key], true)}
+                    onTouchEnd={() => keydownCb(KEYPAD[key], false)}
+                    onMouseDown={() => keydownCb(KEYPAD[key], true)}
+                    onMouseUp={() => keydownCb(KEYPAD[key], false)}
                   >
                     {key.toString()}
                   </Button>
